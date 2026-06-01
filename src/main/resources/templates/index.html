@@ -1,0 +1,1062 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chatbot Assistant</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --blue: #2563EB;
+            --blue-dark: #1D4ED8;
+            --blue-soft: #EFF6FF;
+            --blue-mid: #BFDBFE;
+            --surface: #FFFFFF;
+            --page-bg: #F1F5F9;
+            --border: #E2E8F0;
+            --border-mid: #CBD5E1;
+            --text-main: #0F172A;
+            --text-sub: #475569;
+            --text-hint: #94A3B8;
+            --user-bubble: #2563EB;
+            --bot-bubble: #FFFFFF;
+            --menu-bg: #F8FAFF;
+            --menu-border: #DBEAFE;
+            --menu-hover: #EFF6FF;
+            --menu-text: #1E40AF;
+            --num-bg: #2563EB;
+            --radius-sm: 8px;
+            --radius-md: 14px;
+            --radius-lg: 20px;
+            --radius-pill: 999px;
+            --shadow-card: 0 1px 3px rgba(15, 23, 42, .08), 0 4px 16px rgba(15, 23, 42, .06);
+            --shadow-lift: 0 4px 24px rgba(37, 99, 235, .18);
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+            background: var(--page-bg);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            overflow: hidden;
+        }
+
+        .chat-wrap {
+            width: 100%;
+            max-width: 700px;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        .chat-shell {
+            background: var(--surface);
+            border-radius: 24px;
+            box-shadow: var(--shadow-card);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 560px;
+            border: 1px solid var(--border);
+        }
+
+        .chat-header {
+            background: var(--blue);
+            padding: 0 20px;
+            height: 68px;
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            flex-shrink: 0;
+            position: relative;
+        }
+
+        .chat-header::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 1px;
+            background: rgba(255, 255, 255, .12);
+        }
+
+        .hdr-avatar {
+            width: 42px;
+            height: 42px;
+            background: rgba(255, 255, 255, .18);
+            border: 2px solid rgba(255, 255, 255, .35);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            letter-spacing: .04em;
+            flex-shrink: 0;
+        }
+
+        .hdr-body {
+            flex: 1;
+        }
+
+        .hdr-name {
+            color: #fff;
+            font-weight: 700;
+            font-size: 15.5px;
+            letter-spacing: .01em;
+        }
+
+        .hdr-status {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            margin-top: 2px;
+        }
+
+        .hdr-dot {
+            width: 7px;
+            height: 7px;
+            background: #4ADE80;
+            border-radius: 50%;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: .45;
+            }
+        }
+
+        .hdr-status span {
+            font-size: 12px;
+            color: rgba(255, 255, 255, .78);
+            font-weight: 500;
+        }
+
+        .hdr-badge {
+            background: rgba(255, 255, 255, .15);
+            border: 1px solid rgba(255, 255, 255, .22);
+            border-radius: var(--radius-pill);
+            padding: 4px 11px;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: rgba(255, 255, 255, .9);
+            letter-spacing: .03em;
+        }
+
+        #chatbox {
+            flex: 1;
+            overflow-y: auto;
+            padding: 22px 18px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            background: var(--page-bg);
+            scroll-behavior: smooth;
+        }
+
+        #chatbox::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        #chatbox::-webkit-scrollbar-thumb {
+            background: var(--border-mid);
+            border-radius: 4px;
+        }
+
+        .date-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 2px;
+        }
+
+        .date-chip::before,
+        .date-chip::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
+        .date-chip span {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--text-hint);
+            letter-spacing: .06em;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+
+        .msg-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 9px;
+            animation: rise .22s cubic-bezier(.25, .46, .45, .94) both;
+        }
+
+        @keyframes rise {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .msg-row.user {
+            flex-direction: row-reverse;
+        }
+
+        .bot-av {
+            width: 33px;
+            height: 33px;
+            background: var(--blue);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 15px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, .28);
+            margin-bottom: 20px;
+        }
+
+        .bubble-wrap {
+            display: flex;
+            flex-direction: column;
+            max-width: 82%;
+        }
+
+        .msg-row.user .bubble-wrap {
+            align-items: flex-end;
+        }
+
+        .bubble {
+            padding: 11px 15px;
+            font-size: 14px;
+            line-height: 1.62;
+            word-break: break-word;
+            white-space: pre-wrap;
+            position: relative;
+        }
+
+        .bubble-bot {
+            background: var(--bot-bubble);
+            color: var(--text-main);
+            border-radius: 4px var(--radius-md) var(--radius-md) var(--radius-md);
+            border: 1px solid var(--border);
+            box-shadow: 0 1px 4px rgba(15, 23, 42, .06);
+        }
+
+        .bubble-user {
+            background: var(--user-bubble);
+            color: #fff;
+            border-radius: var(--radius-md) var(--radius-md) 4px var(--radius-md);
+            box-shadow: var(--shadow-lift);
+        }
+
+        .msg-time {
+            font-size: 10.5px;
+            font-weight: 500;
+            color: var(--text-hint);
+            margin-top: 4px;
+            padding: 0 3px;
+        }
+
+        .msg-row.user .msg-time {
+            text-align: right;
+        }
+
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 7px;
+            margin-top: 11px;
+        }
+
+        .menu-btn {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+            background: var(--menu-bg);
+            border: 1.5px solid var(--menu-border);
+            border-radius: var(--radius-sm);
+            padding: 10px 13px;
+            font-size: 13.5px;
+            font-weight: 600;
+            color: var(--menu-text);
+            cursor: pointer;
+            text-align: left;
+            width: 100%;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            transition: background .14s ease, border-color .14s ease, transform .14s ease, box-shadow .14s ease;
+        }
+
+        .menu-btn:hover {
+            background: var(--menu-hover);
+            border-color: var(--blue);
+            transform: translateX(3px);
+            box-shadow: 0 2px 8px rgba(37, 99, 235, .12);
+        }
+
+        .menu-btn:active {
+            transform: translateX(1px) scale(.99);
+        }
+
+        .num-badge {
+            min-width: 24px;
+            height: 24px;
+            background: var(--blue);
+            color: #fff;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11.5px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .menu-btn-label {
+            flex: 1;
+        }
+
+        .menu-chevron {
+            width: 16px;
+            height: 16px;
+            color: var(--blue-mid);
+            transition: transform .14s ease, color .14s ease;
+            flex-shrink: 0;
+        }
+
+        .menu-btn:hover .menu-chevron {
+            color: var(--blue);
+            transform: translateX(2px);
+        }
+
+        .typing-row {
+            display: flex;
+            align-items: flex-end;
+            gap: 9px;
+        }
+
+        .typing-bubble {
+            background: var(--bot-bubble);
+            border: 1px solid var(--border);
+            border-radius: 4px var(--radius-md) var(--radius-md) var(--radius-md);
+            padding: 12px 16px;
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, .06);
+        }
+
+        .dot {
+            width: 7px;
+            height: 7px;
+            background: var(--blue);
+            border-radius: 50%;
+            animation: bop .9s ease infinite;
+            opacity: .7;
+        }
+
+        .dot:nth-child(2) {
+            animation-delay: .16s;
+        }
+
+        .dot:nth-child(3) {
+            animation-delay: .32s;
+        }
+
+        @keyframes bop {
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+            }
+
+            30% {
+                transform: translateY(-7px);
+            }
+        }
+
+        .chat-footer {
+            background: var(--surface);
+            border-top: 1px solid var(--border);
+            padding: 14px 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        #message {
+            flex: 1;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-pill);
+            padding: 11px 18px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-main);
+            background: var(--page-bg);
+            outline: none;
+            transition: border-color .18s ease, background .18s ease, box-shadow .18s ease;
+        }
+
+        #message::placeholder {
+            color: var(--text-hint);
+            font-weight: 400;
+        }
+
+        #message:focus {
+            border-color: var(--blue);
+            background: var(--surface);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+        }
+
+        #sendBtn {
+            width: 44px;
+            height: 44px;
+            background: var(--blue);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background .15s, transform .12s, box-shadow .15s;
+            box-shadow: 0 2px 8px rgba(37, 99, 235, .30);
+        }
+
+        #sendBtn:hover {
+            background: var(--blue-dark);
+            box-shadow: 0 4px 16px rgba(37, 99, 235, .40);
+        }
+
+        #sendBtn:active {
+            transform: scale(.93);
+        }
+
+        #sendBtn svg {
+            display: block;
+        }
+
+        .empty-state {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: var(--text-hint);
+            padding: 32px 24px;
+            text-align: center;
+        }
+
+        .empty-icon {
+            width: 52px;
+            height: 52px;
+            background: var(--blue-soft);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 22px;
+            margin-bottom: 4px;
+        }
+
+        .empty-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-sub);
+        }
+
+        .empty-sub {
+            font-size: 13px;
+            color: var(--text-hint);
+            max-width: 220px;
+            line-height: 1.6;
+        }
+
+        /* =====================================================
+           PAY BUTTON — added styles
+           ===================================================== */
+
+        /* Divider line above the pay button inside the bubble */
+        .pay-divider {
+            border: none;
+            border-top: 1px solid var(--border);
+            margin: 10px 0 0 0;
+        }
+
+        /* Green animated Pay button */
+        .pay-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 2px;
+            padding: 7px;
+            background-image: linear-gradient(90deg, #16a34a, #22c55e, #16a34a);
+            background-size: 200% auto;
+            animation: payshine 2.5s linear infinite;
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 12px;
+            font-weight: 600;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(22, 163, 74, .25);
+            transition: box-shadow .15s, transform .12s;
+            margin-top: 6px;
+        }
+
+        .pay-btn:hover {
+            box-shadow: 0 3px 10px rgba(22, 163, 74, .35);
+            transform: translateY(-1px);
+        }
+
+        .pay-btn:active {
+            transform: scale(.98);
+        }
+
+        @keyframes payshine {
+            0% {
+                background-position: -200% center;
+            }
+
+            100% {
+                background-position: 200% center;
+            }
+        }
+
+        /* =====================================================
+           PAYMENT MODAL — added styles
+           ===================================================== */
+
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, .55);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 999;
+            padding: 16px;
+            display: none;
+            /* hidden by default */
+        }
+
+        .modal-overlay.open {
+            display: flex;
+        }
+
+        .modal-box {
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 24px 64px rgba(15, 23, 42, .25);
+            width: 100%;
+            max-width: 320px;
+            padding: 24px;
+            animation: rise .22s cubic-bezier(.25, .46, .45, .94) both;
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        .modal-title {
+            font-size: 15px;
+            font-weight: 700;
+            color: var(--text-main);
+        }
+
+        .modal-sub {
+            font-size: 11.5px;
+            color: var(--text-hint);
+            margin-top: 2px;
+        }
+
+        .modal-close {
+            width: 30px;
+            height: 30px;
+            background: var(--page-bg);
+            border: none;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 16px;
+            color: var(--text-hint);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background .15s, color .15s;
+            flex-shrink: 0;
+        }
+
+        .modal-close:hover {
+            background: var(--border);
+            color: var(--text-main);
+        }
+
+        .modal-amount {
+            background: var(--blue-soft);
+            border: 1px solid var(--blue-mid);
+            border-radius: 10px;
+            padding: 10px 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .modal-amount-label {
+            font-size: 13px;
+            font-weight: 600;
+            color: #1e40af;
+        }
+
+        .modal-amount-value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+        .modal-field {
+            margin-bottom: 12px;
+        }
+
+        .modal-field label {
+            display: block;
+            font-size: 11.5px;
+            font-weight: 600;
+            color: var(--text-sub);
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: .04em;
+        }
+
+        .modal-field input {
+            width: 100%;
+            border: 1.5px solid var(--border);
+            border-radius: var(--radius-sm);
+            padding: 9px 13px;
+            font-size: 13.5px;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            color: var(--text-main);
+            background: var(--page-bg);
+            outline: none;
+            transition: border-color .18s, box-shadow .18s;
+        }
+
+        .modal-field input:focus {
+            border-color: var(--blue);
+            background: #fff;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, .10);
+        }
+
+        .modal-field input::placeholder {
+            color: var(--text-hint);
+        }
+
+        .modal-pay-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            width: 100%;
+            padding: 8px;
+            margin-top: 5px;
+            background-image: linear-gradient(90deg, #16a34a, #22c55e, #16a34a);
+            background-size: 200% auto;
+            animation: payshine 2.5s linear infinite;
+            color: #fff;
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            font-size: 14px;
+            font-weight: 700;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 4px 14px rgba(22, 163, 74, .35);
+            transition: box-shadow .15s, transform .12s;
+        }
+
+        .modal-pay-btn:hover {
+            box-shadow: 0 6px 20px rgba(22, 163, 74, .45);
+            transform: translateY(-1px);
+        }
+
+        .modal-pay-btn:active {
+            transform: scale(.98);
+        }
+
+        .modal-secure {
+            text-align: center;
+            font-size: 10.5px;
+            color: var(--text-hint);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="chat-wrap">
+        <div class="chat-shell">
+
+            <div class="chat-header">
+                <div class="hdr-avatar">CA</div>
+                <div class="hdr-body">
+                    <div class="hdr-name">Chatbot Assistant</div>
+                    <div class="hdr-status">
+                        <div class="hdr-dot"></div>
+                        <span>Online · Ready to help</span>
+                    </div>
+                </div>
+                <div class="hdr-badge">AI</div>
+            </div>
+
+            <div id="chatbox">
+                <div class="empty-state" id="emptyState">
+                    <div class="empty-icon">💬</div>
+                    <div class="empty-title">Start a conversation</div>
+                    <div class="empty-sub">Type a message below and I'll be happy to help you.</div>
+                </div>
+            </div>
+
+            <div class="chat-footer">
+                <input id="message" type="text" placeholder="Type a message..." autocomplete="off"
+                    onkeydown="handleKey(event)" />
+                <button id="sendBtn" onclick="sendMessage()" title="Send">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13" />
+                        <polygon points="22 2 15 22 11 13 2 9 22 2" />
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="payModal">
+        <div class="modal-box">
+
+            <div class="modal-header">
+                <div>
+                    <div class="modal-title">Complete Registration</div>
+                    <div class="modal-sub">Secure payment · Fill your details below</div>
+                </div>
+                <button class="modal-close" onclick="closeModal()">✕</button>
+            </div>
+
+            <!-- Amount strip -->
+            <div class="modal-amount">
+                <span class="modal-amount-label">Course Registration Fee</span>
+                <span class="modal-amount-value" id="modalAmount">₹500</span>
+            </div>
+
+            <!-- Fields -->
+            <div class="modal-field">
+                <label>Full Name</label>
+                <input type="text" id="payName" placeholder="Enter your full name" />
+            </div>
+            <div class="modal-field">
+                <label>Email Address</label>
+                <input type="email" id="payEmail" placeholder="you@example.com" />
+            </div>
+            <div class="modal-field">
+                <label>Phone Number</label>
+                <input type="tel" id="payPhone" placeholder="+91 9999999999" />
+            </div>
+
+            <!-- Pay button -->
+            <button class="modal-pay-btn" onclick="submitPayment()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                    <line x1="1" y1="10" x2="23" y2="10" />
+                </svg>
+                Pay &amp; Register Now
+            </button>
+
+            <div class="modal-secure">🔒 Your payment is 100% secure &amp; encrypted</div>
+        </div>
+    </div>
+
+    <script>
+        const API_URL = '/chat';
+        let hasMessages = false;
+        let currentCourseName = '';
+
+        /* ── Helpers ──────────────────────────────────────── */
+        function nowTime() {
+            return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }
+        function scrollBottom() {
+            const b = document.getElementById('chatbox');
+            requestAnimationFrame(() => { b.scrollTop = b.scrollHeight; });
+        }
+        function esc(s) {
+            return String(s)
+                .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        /* ── Remove empty state ───────────────────────────── */
+        function removeEmpty() {
+            if (!hasMessages) {
+                const e = document.getElementById('emptyState');
+                if (e) e.remove();
+                document.getElementById('chatbox').insertAdjacentHTML('afterbegin', `
+                    <div class="date-chip"><span>Today</span></div>`);
+                hasMessages = true;
+            }
+        }
+
+        function isFeeResponse(text) {
+            const lower = text.toLowerCase();
+            return lower.includes(' rs') ||
+                lower.includes('₹') ||
+                lower.includes('fee') ||
+                lower.includes('cost') ||
+                lower.includes('price') ||
+                lower.includes('payment') ||
+                lower.includes('register');
+        }
+        function extractAllAmounts(text) {
+            const lines = text.split('\n');
+            const results = [];
+            lines.forEach(line => {
+                const match = line.match(/[\d,]+(?:\s*rs\.?|₹)/i);
+                if (match) {
+                    const num = match[0].replace(/rs\.?/i, '').replace(/₹/, '').trim();
+                    // Get the label: everything before the price on that line
+                    const label = line.replace(/[\d,]+\s*rs\.?/i, '').replace(/[.\-\d]+\./, '').trim();
+                    results.push({ label: label || ('Plan ' + (results.length + 1)), amount: '₹' + num });
+                }
+            });
+            return results;
+        }
+
+        /* ── User bubble ──────────────────────────────────── */
+        function appendUser(text) {
+            removeEmpty();
+            document.getElementById('chatbox').insertAdjacentHTML('beforeend', `
+                <div class="msg-row user">
+                    <div class="bubble-wrap">
+                        <div class="bubble bubble-user">${esc(text)}</div>
+                        <div class="msg-time">${nowTime()}</div>
+                    </div>
+                </div>`);
+            scrollBottom();
+        }
+
+        /* ── Bot bubble ───────────────────────────────────── */
+        function appendBot(reply, responseType, menuItems) {
+            removeEmpty();
+            const box = document.getElementById('chatbox');
+
+            /* Build menu buttons */
+            let menuHtml = '';
+            if (responseType === 'menu' && menuItems && menuItems.length) {
+                const btns = menuItems.map((item, i) => `
+                    <button class="menu-btn"
+                            data-intent-id="${item.id}"
+                            data-label="${esc(item.label)}">
+                        <span class="num-badge">${i + 1}</span>
+                        <span class="menu-btn-label">${esc(item.label)}</span>
+                        <svg class="menu-chevron" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2.2"
+                             stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="9 18 15 12 9 6"/>
+                        </svg>
+                    </button>`).join('');
+                menuHtml = `<div class="menu-list">${btns}</div>`;
+            }
+
+            let payHtml = '';
+            if (responseType === 'text' && isFeeResponse(reply)) {
+                currentCourseName = reply.split('\n')[0].trim();
+                const plans = extractAllAmounts(reply);
+
+                if (plans.length === 1) {
+                    // Only one price → show single Pay button
+                    payHtml = `
+                        <hr class="pay-divider" />
+                        <button class="pay-btn" onclick="openPayModal('${plans[0].amount}')">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                <line x1="1" y1="10" x2="23" y2="10"/>
+                            </svg>
+                            Pay &amp; Register — ${plans[0].amount}
+                        </button>`;
+
+                } else if (plans.length > 1) {
+                    // Multiple prices → show one button per plan
+                    const btns = plans.map(plan => `
+                        <button class="pay-btn" style="margin-top:7px;"
+                                onclick="openPayModal('${plan.amount}')">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white"
+                                stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+                                <line x1="1" y1="10" x2="23" y2="10"/>
+                            </svg>
+                            Pay &amp; Register — ${plan.amount}
+                        </button>`).join('');
+                    payHtml = `<hr class="pay-divider" />${btns}`;
+                }
+            }
+
+            box.insertAdjacentHTML('beforeend', `
+                <div class="msg-row">
+                    <div class="bot-av">🤖</div>
+                    <div class="bubble-wrap">
+                        <div class="bubble bubble-bot">${esc(reply)}${menuHtml}${payHtml}</div>
+                        <div class="msg-time">${nowTime()}</div>
+                    </div>
+                </div>`);
+            scrollBottom();
+        }
+
+        /* ── Typing indicator ─────────────────────────────── */
+        function showTyping() {
+            removeEmpty();
+            document.getElementById('chatbox').insertAdjacentHTML('beforeend', `
+                <div id="typing" class="typing-row">
+                    <div class="bot-av">🤖</div>
+                    <div class="typing-bubble">
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                        <div class="dot"></div>
+                    </div>
+                </div>`);
+            scrollBottom();
+        }
+
+        function removeTyping() {
+            const t = document.getElementById('typing');
+            if (t) t.remove();
+        }
+
+        /* ── API call ─────────────────────────────────────── */
+        async function callApi(payload) {
+            showTyping();
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                const data = await res.json();
+                removeTyping();
+                appendBot(data.reply, data.responseType, data.menuItems);
+            } catch (err) {
+                removeTyping();
+                appendBot('⚠️ Could not connect. Please try again.', 'text', null);
+                console.error(err);
+            }
+        }
+
+        /* ── Send typed message ───────────────────────────── */
+        async function sendMessage() {
+            const input = document.getElementById('message');
+            const text = input.value.trim();
+            if (!text) return;
+            appendUser(text);
+            input.value = '';
+            input.focus();
+            await callApi({ message: text });
+        }
+
+        /* ── Menu button click delegation ─────────────────── */
+        document.getElementById('chatbox').addEventListener('click', function (e) {
+            const btn = e.target.closest('.menu-btn');
+            if (!btn) return;
+            const intentId = Number(btn.dataset.intentId);
+            const label = btn.dataset.label;
+            appendUser(label);
+            callApi({ message: label, intentId });
+        });
+
+        /* ── Enter key ────────────────────────────────────── */
+        function handleKey(e) {
+            if (e.key === 'Enter') sendMessage();
+        }
+
+        /* ── Payment Modal ────────────────────────────────── */
+        function openPayModal(amount) {
+            document.getElementById('modalAmount').textContent = amount;
+            document.getElementById('payModal').classList.add('open');
+            document.getElementById('payName').focus();
+        }
+
+        function closeModal() {
+            document.getElementById('payModal').classList.remove('open');
+            document.getElementById('payName').value = '';
+            document.getElementById('payEmail').value = '';
+            document.getElementById('payPhone').value = '';
+        }
+
+        /* Close modal when clicking outside the box */
+        document.getElementById('payModal').addEventListener('click', function (e) {
+            if (e.target === this) closeModal();
+        });
+
+        function submitPayment() {
+            const name = document.getElementById('payName').value.trim();
+            const email = document.getElementById('payEmail').value.trim();
+            const phone = document.getElementById('payPhone').value.trim();
+            const amount = document.getElementById('modalAmount').textContent;
+
+            if (!name || !email || !phone) {
+                alert('Please fill in all fields to proceed.');
+                return;
+            }
+
+            /* Simulated success (remove once real gateway is connected) */
+            closeModal();
+            appendBot(
+                '✅ Registration Confirmed!\n\nThank you, ' + name + '! 🎉\n\n'
+                + 'Your registration has been received.\n'
+                + 'We will contact you at ' + email + ' with further details.\n\n'
+                + 'Course: ' + currentCourseName + '\n'
+                + 'Amount: ' + amount,
+                'text',
+                null
+            );
+        }
+    </script>
+</body>
+
+</html>
